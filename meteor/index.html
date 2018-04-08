@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="phaser.js"></script>
+</head>
+
+<body>
+    <style>
+        * {
+            padding: 5px;
+            margin: auto;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        body {
+            background-color: #404040;
+        }
+        h1 {
+            color: white;
+            font-size: 48px;
+        }
+    </style>
+    <h1>METEOR SHOWER</h1>
+    <h2>Made by @Ryzahhhh</h2>
+    <h3 style="color: aqua">Reload page to restart!</h3>
+    <div id="gameDiv"></div>
+
+    <script type="text/javascript">
+        (function() {
+            var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'gameDiv', {
+                preload: preload,
+                create: create,
+                update: update
+            });
+
+            var player;
+            var rock;
+            var rocks;
+            var star;
+            var stars;
+            var background;
+            var cursors;
+            var starTimer = 0;
+            var score = 0;
+            var scoreText;
+            var level = 1000;
+            var deathText;
+            var finalText;
+
+            function preload() {
+
+                game.load.image('background', 'background.png');
+
+                game.load.image('rock', 'rock.png');
+
+                game.load.image('star', 'star.png');
+
+                game.load.spritesheet('player', 'player.png', 100, 116);
+
+
+            }
+
+            function create() {
+
+                game.physics.startSystem(Phaser.Physics.ARCADE);
+
+                background = game.add.sprite(0, 0, 'background');
+
+                background.width = this.game.width;
+
+                background.height = this.game.height;
+
+
+
+                player = game.add.sprite(400, 660, 'player');
+
+                game.physics.enable(player, Phaser.Physics.ARCADE);
+
+                player.body.collideWorldBounds = true;
+
+
+
+                player.animations.add('idle', [0, 9, 10], 1, true);
+
+                player.animations.add('run', [5, 6, 7], 4, true);
+
+
+                game.input.keyboard.addKeyCapture([
+                    Phaser.Keyboard.LEFT,
+                    Phaser.Keyboard.RIGHT,
+                    Phaser.Keyboard.UP,
+                    Phaser.Keyboard.DOWN,
+                    Phaser.Keyboard.SPACEBAR
+                ]);
+
+                game.physics.arcade.gravity.y = 800;
+
+                stars = game.add.physicsGroup();
+
+                rocks = game.add.physicsGroup();
+
+                spawnStars();
+                spawnRocks();
+
+                scoreText = this.add.text(16, 16, 'SCORE: 0', {
+                    fontSize: '32px',
+                    fill: '#fff'
+                });
+
+
+            }
+
+            function update() {
+
+                game.physics.arcade.overlap(player, rocks, death, null, this);
+                game.physics.arcade.overlap(player, stars, collectStar, null, this);
+
+                starTimer += this.time.elapsed;
+                if (starTimer > level) {
+                    starTimer = 0;
+                    spawnStars();
+                    spawnRocks();
+                }
+
+                player.body.velocity.x = 0;
+
+                if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+
+                    player.animations.play('run');
+
+                    player.scale.setTo(-1, 1);
+
+                    player.body.velocity.x = -600;
+
+                } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+
+                    player.animations.play('run');
+
+                    player.scale.setTo(1, 1);
+
+                    player.body.velocity.x = 600;
+
+                }
+
+                if (player.body.velocity.x == 0 && player.body.velocity.y == 0) {
+
+                    player.animations.play('idle');
+                }
+
+
+
+            }
+
+            function death() {
+
+                deathText = this.add.text(100, 300, 'GAME OVER', {
+                    fontSize: '100px',
+                    fill: '#ff4500'
+                });
+                finalText = this.add.text(100, 400, 'Final Score: ' + score, {
+                    fontSize: '80px',
+                    fill: '#ff4500'
+                });
+
+
+                level = 999999;
+
+            }
+
+            function collectStar(player, star) {
+                star.kill();
+
+                score += 1;
+                var levelMin = 300;
+
+                if (score < 5 || score < 10 || score < 15 || score < 20 || score < 25 || score < 30) {
+                    if (level > levelMin) {
+                        level -= 100;
+                    } else {
+                        level = levelMin;
+                    }
+                }
+                scoreText.setText('Score: ' + score);
+                
+            }
+
+
+
+
+            function spawnStars() {
+                var dropPos = Math.floor(Math.random() * 800);
+                var dropOffset = [-27, -36, -36, -38, -48];
+                var starType = Math.floor(Math.random() * 5);
+                star = game.add.sprite(dropPos, dropOffset[starType], 'star');
+
+                game.physics.enable(star, Phaser.Physics.ARCADE);
+
+                star.checkWorldBounds = true;
+                star.outOfBoundsKill = true;
+                star.scale.setTo(0.2, 0.2);
+                star.anchor.setTo(0.5, 0.5);
+                star.rotateMe = (Math.random() * 4) - 2;
+                stars.add(star);
+            }
+
+            function spawnRocks() {
+                var dropPos = Math.floor(Math.random() * 800);
+                var dropOffset = [-27, -36, -36, -38, -48];
+                var rockType = Math.floor(Math.random() * 5);
+                rock = game.add.sprite(dropPos, dropOffset[rockType], 'rock');
+
+                game.physics.enable(rock, Phaser.Physics.ARCADE);
+
+                rock.checkWorldBounds = true;
+                rock.outOfBoundsKill = true;
+                rock.scale.setTo(0.05, 0.05);
+                rock.anchor.setTo(0.5, 0.5);
+                rock.rotateMe = (Math.random() * 4) - 2;
+                rocks.add(rock);
+            }
+
+        })();
+    </script>
+
+</body>
+
+</html>
